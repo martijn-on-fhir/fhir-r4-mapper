@@ -5,7 +5,12 @@ import { RawEntity } from '../interfaces/raw-entity.interface';
 
 @Injectable()
 export class ObservationService implements FhirResourceService<any> {
+  
+  private observation: Observation;
+  
   async init(data: RawEntity): Promise<Observation> {
-    return new Observation();
+    this.observation = new Observation();
+
+    return this.observation;
   }
 }
