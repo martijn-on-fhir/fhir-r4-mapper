@@ -13,6 +13,6 @@ import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(XmlJsonMiddleware, FhirResourceMiddleware).forRoutes('*');
+    consumer.apply(XmlJsonMiddleware, FhirResourceMiddleware).forRoutes('(.*)');
   }
 }

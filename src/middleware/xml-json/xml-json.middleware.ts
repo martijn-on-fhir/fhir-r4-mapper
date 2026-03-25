@@ -24,6 +24,8 @@ export class XmlJsonMiddleware implements NestMiddleware {
       req.body = this.parser.parse(req.body.toString('utf-8'));
     } else if (typeof req.body === 'string') {
       req.body = this.parser.parse(req.body);
+    } else {
+      throw new HttpException('Invalid payload', HttpStatus.BAD_REQUEST);
     }
 
     next();
