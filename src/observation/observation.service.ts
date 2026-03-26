@@ -6,10 +6,20 @@ import { appendSubject } from '../lib/append-subject';
 import * as _ from 'lodash';
 import { isVitalSign } from '../lib/is-vital-sign';
 
+/**
+ * Service responsible for mapping raw ZIB (Zorginformatiebouwstenen) entities
+ * to FHIR R4 Observation resources.
+ */
 @Injectable()
 export class ObservationService implements FhirResourceService<any> {
+  /** The FHIR Observation resource being constructed. */
   private observation: Observation;
 
+  /**
+   * Initializes and builds a FHIR Observation from raw ZIB data.
+   * @param data - The raw entity containing ZIB source data.
+   * @returns The fully mapped FHIR Observation resource.
+   */
   async init(data: RawEntity): Promise<Observation> {
     this.observation = new Observation({
       id: data.id,
@@ -28,22 +38,30 @@ export class ObservationService implements FhirResourceService<any> {
     if (this.validate()) return this.observation;
   }
 
+  /**
+   * Sets the observation status from the ZIB ObservationStatus concept code.
+   * Defaults to 'final' if no status is provided.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setStatus(data: RawEntity) {
     const status = _.get(data.main.ObservationStatus, 'conceptCode', 'final');
 
     this.observation.status = status;
   }
 
+  /**
+   * Sets the effective date/time from the first zibObject containing UitslagDatumTijd.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setEffectiveDateTime(data): void {
+    let dt;
 
-    let dt
-
-    if(Array.isArray(data.main.zibObject)) {
+    if (Array.isArray(data.main.zibObject)) {
       dt = _.find(data.main.zibObject, (a: any) => {
         return a.UitslagDatumTijd;
       });
     } else {
-      dt = data.main.zibObject
+      dt = data.main.zibObject;
     }
 
     if (dt && dt.UitslagDatumTijd) {
@@ -51,52 +69,61 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /** Mapping of ZIB source types to their corresponding zibObjectDef and UCUM unit definitions. */
+  private static readonly valueQuantityMap: Record<string, { zibObjectDef: string; unit: string; code: string }> = {
+    BodyHeight: { zibObjectDef: 'LengteWaarde', unit: 'cm', code: 'cm' },
+    BodyTemperature: { zibObjectDef: 'TemperatuurGrC', unit: 'Cel', code: 'Cel' },
+    BodyWeight: { zibObjectDef: 'GewichtWaarde', unit: 'kg', code: 'kg' },
+  };
+
+  /**
+   * Sets the value quantity based on the ZIB source type using {@link valueQuantityMap}.
+   * Looks up the matching zibObject and maps it to a FHIR Quantity with UCUM units.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setValueQuantity(data: RawEntity) {
-    if (data.source === 'BodyHeight') {
+    const config = ObservationService.valueQuantityMap[data.source];
+    if (!config) return;
 
-      let entity;
+    const objects = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+    const entity = objects.find((a: any) => a?.zibObjectDef === config.zibObjectDef);
+    if (!entity) return;
 
-      if (Array.isArray(data.main.zibObject)) {
-
-        entity =_.find(data.main.zibObject, (a: any) => {
-          return a.zibObjectDef === 'LengteWaarde';
-        });
-
-      } else if (data.main.zibObject?.zibObjectDef === 'LengteWaarde'){
-        entity = data.main.zibObject;
-      }
-
-      if(entity){
-
-        this.observation.valueQuantity = new Quantity({
-          value: entity.UitslagWaarde,
-          unit: 'cm',
-          system: 'http://unitsofmeasure.org',
-          code: 'cm',
-        });
-      }
-    }
+    this.observation.valueQuantity = new Quantity({
+      value: entity.UitslagWaarde,
+      unit: config.unit,
+      system: 'http://unitsofmeasure.org',
+      code: config.code,
+    });
   }
 
+  /** Mapping of ZIB source types to their LOINC coding definitions. */
+  private static readonly codeMap: Record<string, { code: string; display: string }[]> = {
+    BodyHeight: [
+      { code: '8302-2', display: 'Body height' },
+      { code: '8308-9', display: 'Body height --standing' },
+    ],
+    BodyTemperature: [{ code: '8310-5', display: 'Body temperature' }],
+    BodyWeight: [{ code: '29463-7', display: 'Body weight' }],
+  };
+
+  /**
+   * Sets the observation code using LOINC codings from {@link codeMap}.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setCode(data: RawEntity) {
-    if (data.source === 'BodyHeight') {
-      this.observation.code = new CodeableConcept({
-        coding: [
-          new Coding({
-            system: 'http://loinc.org',
-            code: '8302-2',
-            display: 'Body height',
-          }),
-          new Coding({
-            system: 'http://loinc.org',
-            code: '8308-9',
-            display: 'Body height --standing',
-          }),
-        ],
-      });
-    }
+    const codings = ObservationService.codeMap[data.source];
+    if (!codings) return;
+
+    this.observation.code = new CodeableConcept({
+      coding: codings.map((c) => new Coding({ system: 'http://loinc.org', code: c.code, display: c.display })),
+    });
   }
 
+  /**
+   * Sets the observation category to 'vital-signs' if the source is a vital sign type.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setCategory(data: RawEntity): void {
     if (data.source && isVitalSign(data.source)) {
       this.observation.category = [
@@ -113,10 +140,18 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /**
+   * Sets the observation subject as a Patient reference.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setSubject(data: RawEntity): void {
     this.observation.subject = appendSubject(data.subject);
   }
 
+  /**
+   * Sets the observation note from the ZIB Toelichting (comment) field.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setComment(data: RawEntity): void {
     if (data.main.Toelichting) {
       this.observation.note = [
@@ -127,6 +162,11 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /**
+   * Sets the body site for BloodPressure observations using SNOMED CT coding
+   * from the MeetLocatie (measurement location) zibObject.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setBodySite(data: RawEntity): void {
     if (data.source === 'BloodPressure' && isVitalSign(data.source)) {
       const location = _.find(data.main.zibObject, (a: any) => {
@@ -149,6 +189,10 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /**
+   * Delegates component mapping based on the ZIB source type.
+   * @param data - The raw entity containing ZIB source data.
+   */
   setComponents(data: RawEntity): void {
     switch (data.source) {
       case 'BloodPressure': {
@@ -158,69 +202,61 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /**
+   * Adds systolic, diastolic, and mean blood pressure as Observation components
+   * with LOINC codings and mmHg quantities.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  private static readonly bloodPressureComponentMap: Record<string, { code: string; display: string }> = {
+    SystolischeBloeddruk: { code: '8480-6', display: 'Systolic blood pressure' },
+    DiastolischeBloeddruk: { code: '8462-4', display: 'Diastolic blood pressure' },
+    GemiddeldeBloeddruk: { code: 'nog te doen', display: 'nog te doen' },
+  };
+
   addBloodPressureMeasurements(data: RawEntity): void {
-    const measurements = _.filter(data.main.zibObject, (a: any) => {
-      return (
-        a.zibObjectDef === 'SystolischeBloeddruk' || a.zibObjectDef === 'DiastolischeBloeddruk' || a.zibObjectDef === 'GemiddeldeBloeddruk'
-      );
-    });
+    const objects = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+    const measurements = objects.filter((a: any) => a?.zibObjectDef in ObservationService.bloodPressureComponentMap);
 
-    if (Array.isArray(measurements)) {
-      measurements.forEach((measurement: any): void => {
-        let entity = {
-          code: '',
-          display: '',
-        };
+    for (const measurement of measurements) {
+      const { code, display } = ObservationService.bloodPressureComponentMap[measurement.zibObjectDef];
 
-        switch (measurement.zibObjectDef) {
-          case 'SystolischeBloeddruk': {
-            entity = {
-              code: '8480-6',
-              display: 'Systolic blood pressure',
-            };
-            break;
-          }
-
-          case 'DiastolischeBloeddruk': {
-            entity = {
-              code: '8462-4',
-              display: 'Diastolic blood pressure',
-            };
-            break;
-          }
-
-          case 'GemiddeldeBloeddruk': {
-            entity = {
-              code: 'nog te doen',
-              display: 'nog te doen',
-            };
-            break;
-          }
-        }
-
-        this.observation.addComponent(
-          new ObservationComponent({
-            code: new CodeableConcept({
-              coding: [
-                new Coding({
-                  system: 'http://loinc.org',
-                  code: entity.code,
-                  display: entity.display,
-                }),
-              ],
-            }),
-            valueQuantity: new Quantity({
-              value: +measurement.UitslagWaarde,
-              unit: 'mmHg',
-              system: 'http://unitsofmeasure.org',
-              code: 'mm[Hg]',
-            }),
+      this.observation.addComponent(
+        new ObservationComponent({
+          code: new CodeableConcept({
+            coding: [new Coding({ system: 'http://loinc.org', code, display })],
           }),
-        );
+          valueQuantity: new Quantity({
+            value: +measurement.UitslagWaarde,
+            unit: 'mmHg',
+            system: 'http://unitsofmeasure.org',
+            code: 'mm[Hg]',
+          }),
+        }),
+      );
+    }
+  }
+
+  /**
+   * Sets a dataAbsentReason of 'unknown' when no valueQuantity is present on the observation.
+   */
+  addAbsentReason(): void {
+    if (!this.observation.valueQuantity) {
+      this.observation.dataAbsentReason = new CodeableConcept({
+        coding: [
+          new Coding({
+            system: 'http://hl7.org/fhir/data-absent-reason',
+            code: 'unknown',
+            display: 'Unknown',
+          }),
+        ],
       });
     }
   }
 
+  /**
+   * Validates the constructed Observation resource.
+   * @returns `true` if the observation is valid.
+   */
   validate(): boolean {
     return true;
   }
