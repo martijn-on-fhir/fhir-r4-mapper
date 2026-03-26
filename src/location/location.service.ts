@@ -8,8 +8,14 @@ export class LocationService implements FhirResourceService<any> {
   private location: Location;
 
   async init(data: RawEntity): Promise<Location> {
-    this.location = new Location();
+    this.location = new Location({
+      id: data.id,
+    });
 
-    return this.location;
+    if(this.validate())  return this.location;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

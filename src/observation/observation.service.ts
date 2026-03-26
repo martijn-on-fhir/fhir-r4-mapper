@@ -9,8 +9,14 @@ export class ObservationService implements FhirResourceService<any> {
   private observation: Observation;
   
   async init(data: RawEntity): Promise<Observation> {
-    this.observation = new Observation();
+    this.observation = new Observation({
+      id: data.id,
+    });
 
-    return this.observation;
+    if(this.validate())  return this.observation;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

@@ -8,8 +8,14 @@ export class NutritionOrderService implements FhirResourceService<any> {
   private nutritionOrder: NutritionOrder;
 
   async init(data: RawEntity): Promise<NutritionOrder> {
-    this.nutritionOrder = new NutritionOrder();
+    this.nutritionOrder = new NutritionOrder({
+      id: data.id,
+    });
 
-    return this.nutritionOrder;
+    if(this.validate())  return this.nutritionOrder;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

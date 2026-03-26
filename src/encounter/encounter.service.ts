@@ -8,8 +8,14 @@ export class EncounterService implements FhirResourceService<any> {
   private encounter: Encounter;
 
   async init(data: RawEntity): Promise<Encounter> {
-    this.encounter = new Encounter();
+    this.encounter = new Encounter({
+      id: data.id,
+    });
 
-    return this.encounter;
+    if(this.validate())  return this.encounter;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

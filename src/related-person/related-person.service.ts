@@ -8,8 +8,14 @@ export class RelatedPersonService implements FhirResourceService<any> {
   private relatedPerson: RelatedPerson;
 
   async init(data: RawEntity): Promise<RelatedPerson> {
-    this.relatedPerson = new RelatedPerson();
+    this.relatedPerson = new RelatedPerson({
+      id: data.id,
+    });
 
-    return this.relatedPerson;
+    if(this.validate())  return this.relatedPerson;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

@@ -8,8 +8,14 @@ export class TaskService implements FhirResourceService<any> {
   private task: Task;
 
   async init(data: RawEntity): Promise<Task> {
-    this.task = new Task();
+    this.task = new Task({
+      id: data.id,
+    });
 
-    return this.task;
+    if(this.validate())  return this.task;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

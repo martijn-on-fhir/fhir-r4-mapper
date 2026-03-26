@@ -8,8 +8,14 @@ export class ConsentService implements FhirResourceService<any> {
   private consent: Consent;
 
   async init(data: RawEntity): Promise<Consent> {
-    this.consent = new Consent();
+    this.consent = new Consent({
+      id: data.id,
+    });
 
-    return this.consent;
+    if(this.validate())  return this.consent;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

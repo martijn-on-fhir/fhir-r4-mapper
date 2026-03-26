@@ -8,8 +8,14 @@ export class ProcedureService implements FhirResourceService<any> {
   private procedure: Procedure;
 
   async init(data: RawEntity): Promise<Procedure> {
-    this.procedure = new Procedure();
+    this.procedure = new Procedure({
+      id: data.id,
+    });
 
-    return this.procedure;
+    if(this.validate())  return this.procedure;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

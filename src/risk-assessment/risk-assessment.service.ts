@@ -8,8 +8,14 @@ export class RiskAssessmentService implements FhirResourceService<any> {
   private riskAssessment: RiskAssessment;
 
   async init(data: RawEntity): Promise<RiskAssessment> {
-    this.riskAssessment = new RiskAssessment();
+    this.riskAssessment = new RiskAssessment({
+      id: data.id,
+    });
 
-    return this.riskAssessment;
+    if(this.validate())  return this.riskAssessment;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

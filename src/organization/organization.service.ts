@@ -8,8 +8,14 @@ export class OrganizationService implements FhirResourceService<any> {
   private organization: Organization;
 
   async init(data: RawEntity): Promise<Organization> {
-    this.organization = new Organization();
+    this.organization = new Organization({
+      id: data.id,
+    });
 
-    return this.organization;
+    if(this.validate())  return this.organization;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

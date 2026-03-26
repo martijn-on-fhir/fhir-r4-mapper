@@ -8,8 +8,14 @@ export class PractitionerService implements FhirResourceService<any> {
   private practitioner: Practitioner;
 
   async init(data: RawEntity): Promise<Practitioner> {
-    this.practitioner = new Practitioner();
+    this.practitioner = new Practitioner({
+      id: data.id,
+    });
 
-    return this.practitioner;
+    if(this.validate())  return this.practitioner;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { FhirResourceService } from '../../interfaces/fhir-resource-service.interface';
 import { FhirResource } from '../../interfaces/fhir-resource.interface';
@@ -8,6 +8,9 @@ export class RegisterService {
   constructor(private moduleRef: ModuleRef) {}
 
   resolve(resourceType: string): FhirResourceService<FhirResource> {
+
+    if(!resourceType) throw new HttpException('Resource type is required', HttpStatus.BAD_REQUEST)
+
     try {
       return this.moduleRef.get(`${resourceType}Service`, { strict: false });
     } catch {

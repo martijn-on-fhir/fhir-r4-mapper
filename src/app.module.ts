@@ -21,7 +21,24 @@ import { XmlJsonMiddleware } from './middleware/xml-json/xml-json.middleware';
 import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource.middleware';
 
 @Module({
-  imports: [PatientModule, ObservationModule, ConsentModule, PractitionerModule, PractitionerRoleModule, CarePlanModule, EncounterModule, FlagModule, GoalModule, LocationModule, NutritionOrderModule, OrganizationModule, ProcedureModule, RelatedPersonModule, RiskAssessmentModule, TaskModule],
+  imports: [
+    PatientModule,
+    ObservationModule,
+    ConsentModule,
+    PractitionerModule,
+    PractitionerRoleModule,
+    CarePlanModule,
+    EncounterModule,
+    FlagModule,
+    GoalModule,
+    LocationModule,
+    NutritionOrderModule,
+    OrganizationModule,
+    ProcedureModule,
+    RelatedPersonModule,
+    RiskAssessmentModule,
+    TaskModule,
+  ],
   controllers: [AppController],
   providers: [RegisterService],
 })

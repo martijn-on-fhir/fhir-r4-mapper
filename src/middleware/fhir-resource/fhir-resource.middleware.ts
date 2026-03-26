@@ -8,7 +8,7 @@ export class FhirResourceMiddleware implements NestMiddleware {
       const { zibDef, zibID, zibSubject, zibMainPart } = req.body.zibBundle.zib;
 
       req.body = {
-        id: zibID,
+        id: this.setId(zibID),
         resourceType: zibDef,
         subject: zibSubject,
         main: zibMainPart,
@@ -16,5 +16,9 @@ export class FhirResourceMiddleware implements NestMiddleware {
     }
 
     next();
+  }
+
+  private setId(id: string) {
+    return id.replaceAll(/(::)/g, '.');
   }
 }

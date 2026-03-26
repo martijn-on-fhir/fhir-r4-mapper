@@ -9,8 +9,15 @@ export class PatientService implements FhirResourceService<any> {
   private patient: Patient;
 
   async init(data: RawEntity): Promise<Patient> {
-    this.patient = new Patient();
 
-    return this.patient;
+    this.patient = new Patient({
+      id: data.id,
+    });
+
+    if(this.validate())  return this.patient;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }

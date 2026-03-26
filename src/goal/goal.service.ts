@@ -8,8 +8,14 @@ export class GoalService implements FhirResourceService<any> {
   private goal: Goal;
 
   async init(data: RawEntity): Promise<Goal> {
-    this.goal = new Goal();
+    this.goal = new Goal({
+      id: data.id,
+    });
 
-    return this.goal;
+    if(this.validate())  return this.goal;
+  }
+
+  validate(): boolean {
+    return true;
   }
 }
