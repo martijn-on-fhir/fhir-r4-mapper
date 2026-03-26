@@ -16,6 +16,7 @@ import { ProcedureModule } from './procedure/procedure.module';
 import { RelatedPersonModule } from './related-person/related-person.module';
 import { RiskAssessmentModule } from './risk-assessment/risk-assessment.module';
 import { TaskModule } from './task/task.module';
+import { CoverageModule } from './coverage/coverage.module';
 import { RegisterService } from './services/register/register.service';
 import { XmlJsonMiddleware } from './middleware/xml-json/xml-json.middleware';
 import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource.middleware';
@@ -38,6 +39,7 @@ import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource
     RelatedPersonModule,
     RiskAssessmentModule,
     TaskModule,
+    CoverageModule,
   ],
   controllers: [AppController],
   providers: [RegisterService],

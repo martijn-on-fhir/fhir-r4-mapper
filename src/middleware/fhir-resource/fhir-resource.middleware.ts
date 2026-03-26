@@ -1,5 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { formatId } from '../../lib/format-id';
 
 @Injectable()
 export class FhirResourceMiddleware implements NestMiddleware {
@@ -8,7 +9,7 @@ export class FhirResourceMiddleware implements NestMiddleware {
       const { zibDef, zibID, zibSubject, zibMainPart } = req.body.zibBundle.zib;
 
       req.body = {
-        id: this.setId(zibID),
+        id: formatId(zibID),
         resourceType: zibDef,
         subject: zibSubject,
         main: zibMainPart,
@@ -16,9 +17,5 @@ export class FhirResourceMiddleware implements NestMiddleware {
     }
 
     next();
-  }
-
-  private setId(id: string) {
-    return id.replaceAll(/(::)/g, '.');
   }
 }
