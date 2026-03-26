@@ -1,0 +1,128 @@
+<zibBundle>
+  <zib>
+    <zibDef>BloodPressure</zibDef>
+    <zibVersion>3.1</zibVersion>
+    <zibID>4A6499.14713.09A51B.38596</zibID>
+    <zibTimestamp>2025-03-31T13:58:14Z</zibTimestamp>
+    <zibActive>true</zibActive>
+    <zibSubject>
+      <zibSubjectResourceTechID>4A6499.14713.09A51B.38605</zibSubjectResourceTechID>
+      <zibSubjectResourceDef>Patiënt</zibSubjectResourceDef>
+    </zibSubject>
+    <zibMainPart>
+      <zibObjectUPT>6EDB::2847::09A51B::3434</zibObjectUPT>
+      <zibObjectFhirType />
+      <zibObjectDef>AlgemeneMeting</zibObjectDef>
+      <Onderzoek>Bloeddruk V3</Onderzoek>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11208</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>SystolischeBloeddruk</zibObjectDef>
+        <MetingNaam>SystolischeBloeddruk</MetingNaam>
+        <UitslagWaarde>180</UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11209</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>DiastolischeBloeddruk</zibObjectDef>
+        <MetingNaam>DiastolischeBloeddruk</MetingNaam>
+        <UitslagWaarde>140</UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11210</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>GemiddeldeBloeddruk</zibObjectDef>
+        <MetingNaam>GemiddeldeBloeddruk</MetingNaam>
+        <UitslagWaarde>160</UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11212</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>Meetmethode</zibObjectDef>
+        <MetingNaam>Meetmethode</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Invasive</conceptNaam>
+          <conceptCode>10179008</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Invasief</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11213</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>MeetLocatie</zibObjectDef>
+        <MetingNaam>MeetLocatie</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Structure of left thigh</conceptNaam>
+          <conceptCode>61396006</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Linker bovenbeen</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11214</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>ManchetType</zibObjectDef>
+        <MetingNaam>ManchetType</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Extra groot</conceptNaam>
+          <conceptCode>XL</conceptCode>
+          <codestelselNaam>ManchetType</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.2.4.3.11.60.40.4.15.1</codestelstelOID>
+          <omschrijving>Extra groot (Een manchet voor het dijbeen of arm wanneer de armomtrek 45 tot 52 cm is (manchet 16x42 cm))</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11215</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>DiastolischEindpunt</zibObjectDef>
+        <MetingNaam>DiastolischEindpunt</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Phase 4</conceptNaam>
+          <conceptCode>255271000</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Fase IV</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::11216</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>Houding</zibObjectDef>
+        <MetingNaam>Houding</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Position with tilt</conceptNaam>
+          <conceptCode>272587006</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Achteroverleunende positie</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2024-12-03T12:06:00Z</UitslagDatumTijd>
+      </zibObject>
+      <Toelichting>Een complete bloeddruk V3</Toelichting>
+      <ObservationStatus>
+        <conceptNaam>Final</conceptNaam>
+        <conceptCode>final</conceptCode>
+        <codestelselNaam>http://hl7.org/fhir/observation-status</codestelselNaam>
+        <codestelstelOID>2.16.840.1.113883.4.642.1.388</codestelstelOID>
+        <omschrijving>The observation is complete</omschrijving>
+      </ObservationStatus>
+      <zibPerformers>
+        <zibPerformer>
+          <zibID>4A6499.14713.09A51B.38563</zibID>
+          <naam>Schimmel M.</naam>
+          <resource>Practitioner</resource>
+        </zibPerformer>
+      </zibPerformers>
+    </zibMainPart>
+  </zib>
+</zibBundle>

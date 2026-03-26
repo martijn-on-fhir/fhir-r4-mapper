@@ -1,0 +1,121 @@
+<zibBundle>
+  <zib>
+    <zibDef>BloodPressure</zibDef>
+    <zibVersion>v3.1(2017NL)</zibVersion>
+    <zibID>4A6499::14713::09A51B::102</zibID>
+    <zibTimestamp>2022-08-09T09:38:22Z</zibTimestamp>
+    <zibActive>true</zibActive>
+    <zibSubject>
+      <zibSubjectResourceTechID>4A6499::14713::09A51B::1</zibSubjectResourceTechID>
+      <zibSubjectResourceDef>Patiëntengegevens</zibSubjectResourceDef>
+    </zibSubject>
+    <zibMainPart>
+      <zibObjectUPT>6EDB::2847::09A51B::2813</zibObjectUPT>
+      <zibObjectFhirType />
+      <zibObjectDef>AlgemeneMeting</zibObjectDef>
+      <Onderzoek>Bloeddruk V3</Onderzoek>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9555</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>SystolischeBloeddruk</zibObjectDef>
+        <MetingNaam>SystolischeBloeddruk</MetingNaam>
+        <UitslagWaarde>120</UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9556</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>DiastolischeBloeddruk</zibObjectDef>
+        <MetingNaam>DiastolischeBloeddruk</MetingNaam>
+        <UitslagWaarde>80</UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9557</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>GemiddeldeBloeddruk</zibObjectDef>
+        <MetingNaam>GemiddeldeBloeddruk</MetingNaam>
+        <UitslagWaarde>100</UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9558</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>Toelichting</zibObjectDef>
+        <MetingNaam>Toelichting</MetingNaam>
+        <UitslagWaarde>Testje voppr xxx bals</UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9559</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>Meetmethode</zibObjectDef>
+        <MetingNaam>Meetmethode</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Invasive</conceptNaam>
+          <conceptCode>10179008</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Invasief</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9560</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>MeetLocatie</zibObjectDef>
+        <MetingNaam>MeetLocatie</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Structure of right wrist</conceptNaam>
+          <conceptCode>9736006</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Rechterpols</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9561</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>ManchetType</zibObjectDef>
+        <MetingNaam>ManchetType</MetingNaam>
+
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9562</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>DiastolischEindpunt</zibObjectDef>
+        <MetingNaam>DiastolischEindpunt</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Phase 5</conceptNaam>
+          <conceptCode>255272007</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Fase V</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+      <zibObject>
+        <zibObjectUPT>6EDB::2854::09A51B::9563</zibObjectUPT>
+        <zibObjectFhirType />
+        <zibObjectDef>Houding</zibObjectDef>
+        <MetingNaam>Houding</MetingNaam>
+        <UitslagWaarde>
+          <conceptNaam>Recumbent body position</conceptNaam>
+          <conceptCode>102538003</conceptCode>
+          <codestelselNaam>SNOMED CT</codestelselNaam>
+          <codestelstelOID>2.16.840.1.113883.6.96</codestelstelOID>
+          <omschrijving>Liggende positie</omschrijving>
+        </UitslagWaarde>
+        <UitslagDatumTijd>2022-05-06T08:25:00Z</UitslagDatumTijd>
+      </zibObject>
+    </zibMainPart>
+    <zibExtensions>
+      <zibExtension>
+        <zibID>4A6499::14713::09A51B::147</zibID>
+        <zibDefinitie>Zorgverlener</zibDefinitie>
+      </zibExtension>
+    </zibExtensions>
+  </zib>
+</zibBundle>
