@@ -293,10 +293,10 @@ export class ObservationService implements FhirResourceService<any> {
 
     if(!ob) return;
 
-    const dg = _.filter(ob, (a: any) => {
-      return a.zibObjectDef === 'Kind' || a.zibObjectDef === 'Burgelijkestaat';
-    });
-    const kind = _.filter(ob, (a: any) => a.zibObjectDef === 'Kind');
+    // const dg = _.filter(ob, (a: any) => {
+    //   return a.zibObjectDef === 'Kind' || a.zibObjectDef === 'Burgelijkestaat';
+    // });
+    // const kind = _.filter(ob, (a: any) => a.zibObjectDef === 'Kind');
     // const status = _.filter(ob, (a: any) => a.zibObjectDef === 'Burgelijkestaat');
     //
     // for(const concept of kind){

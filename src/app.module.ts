@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { PatientModule } from './patient/patient.module';
 import { ObservationModule } from './observation/observation.module';
@@ -17,12 +18,18 @@ import { RelatedPersonModule } from './related-person/related-person.module';
 import { RiskAssessmentModule } from './risk-assessment/risk-assessment.module';
 import { TaskModule } from './task/task.module';
 import { CoverageModule } from './coverage/coverage.module';
+import { HealthModule } from './health/health.module';
 import { RegisterService } from './services/register/register.service';
 import { XmlJsonMiddleware } from './middleware/xml-json/xml-json.middleware';
 import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource.middleware';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      load: [() => require(`../config/${process.env.NODE_ENV || 'dev'}.json`)],
+    }),
     PatientModule,
     ObservationModule,
     ConsentModule,
@@ -40,6 +47,7 @@ import { FhirResourceMiddleware } from './middleware/fhir-resource/fhir-resource
     RiskAssessmentModule,
     TaskModule,
     CoverageModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [RegisterService],
