@@ -144,6 +144,7 @@ export class ObservationService implements FhirResourceService<any> {
     BodyWeight: [{ code: '29463-7', display: 'Body weight' }],
     AlcoholUse: [{ code: '228273003', display: 'Bevinding betreffende alcoholgebruike' }],
     DrugsUse: [{ code: '228366006', display: 'Bevinding betreffende drugsgebruik ' }],
+    FamilySituation: [{ code: '365470003', display: 'Bevinding betreffende gegevens over gezin en gezinssamenstelling' }],
   };
 
   /**
@@ -178,7 +179,7 @@ export class ObservationService implements FhirResourceService<any> {
       ];
     }
 
-    if (data.source === 'AlcoholUse' || data.source === 'DrugsUse') {
+    if (data.source === 'AlcoholUse' || data.source === 'DrugsUse' || data.source === 'FamilySituation') {
       this.observation.addCategory(
         new CodeableConcept({
           coding: [
@@ -206,7 +207,7 @@ export class ObservationService implements FhirResourceService<any> {
    * @param data - The raw entity containing ZIB source data.
    */
   setComment(data: RawEntity): void {
-    if (data.main.Toelichting) {
+    if (data.main.Toelichting || data.main.ToelichtingGezinssituatie) {
       this.observation.note = [
         new Annotation({
           text: data.main.Toelichting,
@@ -279,8 +280,31 @@ export class ObservationService implements FhirResourceService<any> {
         this.addDrugsUseMeasurements(data);
         break;
       }
+
+      case 'FamilySituation': {
+        this.addFamilySituationMeasurements(data);
+      }
     }
   }
+
+  addFamilySituationMeasurements(data: RawEntity): void {
+
+    const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+
+    if(!ob) return;
+
+    const dg = _.filter(ob, (a: any) => {
+      return a.zibObjectDef === 'Kind' || a.zibObjectDef === 'Burgelijkestaat';
+    });
+    const kind = _.filter(ob, (a: any) => a.zibObjectDef === 'Kind');
+    const status = _.filter(ob, (a: any) => a.zibObjectDef === 'Burgelijkestaat');
+
+    for(const concept of kind){
+      const dummy = null
+    }
+
+    const dummy = null
+  };
 
   /**
    * Adds DrugsUse components (drug type, administration route, usage status)
