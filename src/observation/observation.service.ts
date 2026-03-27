@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FhirResourceService } from '../interfaces/fhir-resource-service.interface';
-import { Annotation, CodeableConcept, Coding, Observation, ObservationComponent, Quantity } from 'fhir-models-r4';
+import { Annotation, CodeableConcept, Coding, Observation, ObservationComponent, Period, Quantity } from 'fhir-models-r4';
 import { RawEntity } from '../interfaces/raw-entity.interface';
 import { appendSubject } from '../lib/append-subject';
 import * as _ from 'lodash';
@@ -31,6 +31,7 @@ export class ObservationService implements FhirResourceService<any> {
     this.setValueQuantity(data);
     this.setCode(data);
     this.setEffectiveDateTime(data);
+    this.setEffectivePeriod(data);
     this.setBodySite(data);
     this.setComponents(data);
     this.setComment(data);
@@ -47,6 +48,27 @@ export class ObservationService implements FhirResourceService<any> {
     const status = _.get(data.main.ObservationStatus, 'conceptCode', 'final');
 
     this.observation.status = status;
+  }
+
+  /**
+   * Sets the effective period for AlcoholUse observations using the
+   * WaarnemingGebruik start and end dates.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  setEffectivePeriod(data: RawEntity) {
+    if (data.source === 'AlcoholUse') {
+      const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+      const waarneming = _.find(ob, (a: any) => {
+        return a.zibObjectDef === 'WaarnemingGebruik';
+      });
+
+      if (waarneming) {
+        this.observation.effectivePeriod = new Period({
+          start: `${waarneming.StartDatum || undefined}`,
+          end: waarneming.EindDatum ? `${waarneming.EindDatum}` : undefined,
+        });
+      }
+    }
   }
 
   /**
@@ -105,6 +127,7 @@ export class ObservationService implements FhirResourceService<any> {
     ],
     BodyTemperature: [{ code: '8310-5', display: 'Body temperature' }],
     BodyWeight: [{ code: '29463-7', display: 'Body weight' }],
+    AlcoholUse: [{ code: '228273003', display: 'Bevinding betreffende alcoholgebruike' }],
   };
 
   /**
@@ -138,6 +161,20 @@ export class ObservationService implements FhirResourceService<any> {
         }),
       ];
     }
+
+    if (data.source === 'AlcoholUse') {
+      this.observation.addCategory(
+        new CodeableConcept({
+          coding: [
+            new Coding({
+              system: 'http://hl7.org/fhir/observation-category',
+              code: 'social-history',
+              display: 'Social History',
+            }),
+          ],
+        }),
+      );
+    }
   }
 
   /**
@@ -159,6 +196,18 @@ export class ObservationService implements FhirResourceService<any> {
           text: data.main.Toelichting,
         }),
       ];
+    }
+
+    const entity = _.find(data.main.zibObject, (a: any) => {
+      return a.zibObjectDef === 'Toelichting';
+    });
+
+    if (entity) {
+      this.observation.addNote(
+        new Annotation({
+          text: entity.UitslagWaarde,
+        }),
+      );
     }
   }
 
@@ -199,6 +248,111 @@ export class ObservationService implements FhirResourceService<any> {
         this.addBloodPressureMeasurements(data);
         break;
       }
+
+      case 'BodyWeight': {
+        this.addBodyWeightMeasurements(data);
+        break;
+      }
+
+      case 'AlcoholUse': {
+        this.AddAlcoholUseMeasurements(data);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Adds alcohol use components including usage status (SNOMED CT coded)
+   * and consumption frequency as a valueQuantity.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  AddAlcoholUseMeasurements(data: RawEntity): void {
+    const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+    const status = _.find(ob, (a: any) => {
+      return a.zibObjectDef === 'AlcoholGebruikStatus';
+    });
+    const waarneming = _.find(ob, (a: any) => {
+      return a.zibObjectDef === 'WaarnemingGebruik';
+    });
+    let valueQuantity:Quantity
+
+
+    if (waarneming) {
+
+      const getValueQuantity = (entity): any => {
+
+        return {
+          value: entity['AantalKeer'],
+          unit: `${entity['Per']}`,
+          codeValue: `${entity['AantalKeer']}/${entity['Per']}`
+        }
+      };
+
+      const frequentie = getValueQuantity(waarneming);
+
+      if(frequentie) {
+
+        valueQuantity = new Quantity({
+          value: frequentie.value,
+          unit: frequentie.unit,
+          system: 'http://unitsofmeasure.org',
+          code: frequentie.codeValue
+        });
+      }
+    }
+
+    if (status && status.Toelichting) {
+      this.observation.addNote(
+        new Annotation({
+          text: status.Toelichting,
+        }),
+      );
+    }
+
+    if (status) {
+
+      const { conceptCode, conceptNaam } = status.AlcoholGebruikStatus;
+
+      this.observation.addComponent(
+        new ObservationComponent({
+          code: new CodeableConcept({
+            coding: [
+              new Coding({
+                system: 'http://snomed.info/sct',
+                code: conceptCode,
+                display: conceptNaam,
+              }),
+            ],
+          }),
+          valueQuantity
+        }),
+      );
+    }
+  }
+
+  /**
+   * Adds clothing (Kleding) as an Observation component for BodyWeight measurements,
+   * using the coded value from the zibObject.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  addBodyWeightMeasurements(data: RawEntity): void {
+    const objects = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+    const measurements = objects.filter((a: any) => a?.zibObjectDef === 'Kleding');
+
+    for (const measurement of measurements) {
+      this.observation.addComponent(
+        new ObservationComponent({
+          code: new CodeableConcept({
+            coding: [
+              new Coding({
+                system: _.get(measurement.UitslagWaarde, 'codestelstelOID'),
+                code: _.get(measurement.UitslagWaarde, 'conceptCode'),
+                display: _.get(measurement.UitslagWaarde, 'conceptNaam'),
+              }),
+            ],
+          }),
+        }),
+      );
     }
   }
 
