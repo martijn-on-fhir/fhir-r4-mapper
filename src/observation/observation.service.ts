@@ -5,6 +5,7 @@ import { RawEntity } from '../interfaces/raw-entity.interface';
 import { appendSubject } from '../lib/append-subject';
 import * as _ from 'lodash';
 import { isVitalSign } from '../lib/is-vital-sign';
+import { TerminologyService } from '../services/terminology/terminology.service';
 
 /**
  * Service responsible for mapping raw ZIB (Zorginformatiebouwstenen) entities
@@ -12,6 +13,8 @@ import { isVitalSign } from '../lib/is-vital-sign';
  */
 @Injectable()
 export class ObservationService implements FhirResourceService<any> {
+  constructor(private readonly terminology: TerminologyService) {}
+
   /** The FHIR Observation resource being constructed. */
   private observation: Observation;
 
@@ -34,7 +37,7 @@ export class ObservationService implements FhirResourceService<any> {
     this.setEffectiveDateTime(data);
     this.setEffectivePeriod(data);
     this.setBodySite(data);
-    this.setComponents(data);
+    await this.setComponents(data);
     this.setComment(data);
 
     if (this.validate()) return this.observation;
@@ -259,7 +262,7 @@ export class ObservationService implements FhirResourceService<any> {
    * Delegates component mapping based on the ZIB source type.
    * @param data - The raw entity containing ZIB source data.
    */
-  setComponents(data: RawEntity): void {
+  async setComponents(data: RawEntity): Promise<void> {
     switch (data.source) {
       case 'BloodPressure': {
         this.addBloodPressureMeasurements(data);
@@ -272,7 +275,7 @@ export class ObservationService implements FhirResourceService<any> {
       }
 
       case 'AlcoholUse': {
-        this.addAlcoholUseMeasurements(data);
+        await this.addAlcoholUseMeasurements(data);
         break;
       }
 
@@ -350,7 +353,7 @@ export class ObservationService implements FhirResourceService<any> {
    * and consumption frequency as a valueQuantity.
    * @param data - The raw entity containing ZIB source data.
    */
-  addAlcoholUseMeasurements(data: RawEntity): void {
+  async addAlcoholUseMeasurements(data: RawEntity): Promise<void> {
     const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
     const status = _.find(ob, (a: any) => {
       return a.zibObjectDef === 'AlcoholGebruikStatus';
@@ -391,6 +394,7 @@ export class ObservationService implements FhirResourceService<any> {
 
     if (status) {
       const { conceptCode, conceptNaam } = status.AlcoholGebruikStatus;
+      const display = await this.terminology.lookupSnomedSct(conceptCode, conceptNaam);
 
       this.observation.addComponent(
         new ObservationComponent({
@@ -399,7 +403,7 @@ export class ObservationService implements FhirResourceService<any> {
               new Coding({
                 system: 'http://snomed.info/sct',
                 code: conceptCode,
-                display: conceptNaam,
+                display,
               }),
             ],
           }),
