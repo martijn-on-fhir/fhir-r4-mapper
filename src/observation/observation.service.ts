@@ -29,6 +29,7 @@ export class ObservationService implements FhirResourceService<any> {
     this.setSubject(data);
     this.setCategory(data);
     this.setValueQuantity(data);
+    this.setValueCodeableConcept(data);
     this.setCode(data);
     this.setEffectiveDateTime(data);
     this.setEffectivePeriod(data);
@@ -56,7 +57,7 @@ export class ObservationService implements FhirResourceService<any> {
    * @param data - The raw entity containing ZIB source data.
    */
   setEffectivePeriod(data: RawEntity) {
-    if (data.source === 'AlcoholUse') {
+    if (data.source === 'AlcoholUse' || data.source === 'DrugsUse') {
       const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
       const waarneming = _.find(ob, (a: any) => {
         return a.zibObjectDef === 'WaarnemingGebruik';
@@ -98,6 +99,20 @@ export class ObservationService implements FhirResourceService<any> {
     BodyWeight: { zibObjectDef: 'GewichtWaarde', unit: 'kg', code: 'kg' },
   };
 
+  async setValueCodeableConcept(data: RawEntity): Promise<void> {
+    if (data.source === 'DrugsUse') {
+      this.observation.valueCodeableConcept = new CodeableConcept({
+        coding: [
+          new Coding({
+            system: 'http://snomed.info/sct',
+            code: '228366006',
+            display: 'bevinding betreffende drugsgebruik (bevinding)',
+          }),
+        ],
+      });
+    }
+  }
+
   /**
    * Sets the value quantity based on the ZIB source type using {@link valueQuantityMap}.
    * Looks up the matching zibObject and maps it to a FHIR Quantity with UCUM units.
@@ -128,6 +143,7 @@ export class ObservationService implements FhirResourceService<any> {
     BodyTemperature: [{ code: '8310-5', display: 'Body temperature' }],
     BodyWeight: [{ code: '29463-7', display: 'Body weight' }],
     AlcoholUse: [{ code: '228273003', display: 'Bevinding betreffende alcoholgebruike' }],
+    DrugsUse: [{ code: '228366006', display: 'Bevinding betreffende drugsgebruik ' }],
   };
 
   /**
@@ -162,7 +178,7 @@ export class ObservationService implements FhirResourceService<any> {
       ];
     }
 
-    if (data.source === 'AlcoholUse') {
+    if (data.source === 'AlcoholUse' || data.source === 'DrugsUse') {
       this.observation.addCategory(
         new CodeableConcept({
           coding: [
@@ -255,9 +271,54 @@ export class ObservationService implements FhirResourceService<any> {
       }
 
       case 'AlcoholUse': {
-        this.AddAlcoholUseMeasurements(data);
+        this.addAlcoholUseMeasurements(data);
         break;
       }
+
+      case 'DrugsUse': {
+        this.addDrugsUseMeasurements(data);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Adds DrugsUse components (drug type, administration route, usage status)
+   * as coded Observation components using their source code system.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  addDrugsUseMeasurements(data: RawEntity) {
+    const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
+    const dg = _.find(ob, (a: any) => a.zibObjectDef === 'DrugsGebruik');
+
+    if (!dg) return;
+
+    const { DrugsOfGeneesmiddelSoort, Toedieningsweg, DrugsGebruikStatus } = dg;
+
+    for (const concept of [DrugsOfGeneesmiddelSoort, Toedieningsweg, DrugsGebruikStatus]) {
+      if (!concept) continue;
+
+      this.observation.addComponent(
+        new ObservationComponent({
+          code: new CodeableConcept({
+            coding: [
+              new Coding({
+                system: concept.codestelstelOID,
+                code: `${concept.conceptCode}`,
+                display: concept.conceptNaam,
+              }),
+            ],
+          }),
+        }),
+      );
+    }
+
+    if (dg.Toelichting) {
+      this.observation.addNote(
+        new Annotation({
+          text: dg.Toelichting,
+        }),
+      );
     }
   }
 
@@ -266,7 +327,7 @@ export class ObservationService implements FhirResourceService<any> {
    * and consumption frequency as a valueQuantity.
    * @param data - The raw entity containing ZIB source data.
    */
-  AddAlcoholUseMeasurements(data: RawEntity): void {
+  addAlcoholUseMeasurements(data: RawEntity): void {
     const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
     const status = _.find(ob, (a: any) => {
       return a.zibObjectDef === 'AlcoholGebruikStatus';
@@ -274,29 +335,25 @@ export class ObservationService implements FhirResourceService<any> {
     const waarneming = _.find(ob, (a: any) => {
       return a.zibObjectDef === 'WaarnemingGebruik';
     });
-    let valueQuantity:Quantity
-
+    let valueQuantity: Quantity;
 
     if (waarneming) {
-
       const getValueQuantity = (entity): any => {
-
         return {
           value: entity['AantalKeer'],
           unit: `${entity['Per']}`,
-          codeValue: `${entity['AantalKeer']}/${entity['Per']}`
-        }
+          codeValue: `${entity['AantalKeer']}/${entity['Per']}`,
+        };
       };
 
       const frequentie = getValueQuantity(waarneming);
 
-      if(frequentie) {
-
+      if (frequentie) {
         valueQuantity = new Quantity({
           value: frequentie.value,
           unit: frequentie.unit,
           system: 'http://unitsofmeasure.org',
-          code: frequentie.codeValue
+          code: frequentie.codeValue,
         });
       }
     }
@@ -310,7 +367,6 @@ export class ObservationService implements FhirResourceService<any> {
     }
 
     if (status) {
-
       const { conceptCode, conceptNaam } = status.AlcoholGebruikStatus;
 
       this.observation.addComponent(
@@ -324,7 +380,7 @@ export class ObservationService implements FhirResourceService<any> {
               }),
             ],
           }),
-          valueQuantity
+          valueQuantity,
         }),
       );
     }
