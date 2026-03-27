@@ -297,13 +297,12 @@ export class ObservationService implements FhirResourceService<any> {
       return a.zibObjectDef === 'Kind' || a.zibObjectDef === 'Burgelijkestaat';
     });
     const kind = _.filter(ob, (a: any) => a.zibObjectDef === 'Kind');
-    const status = _.filter(ob, (a: any) => a.zibObjectDef === 'Burgelijkestaat');
+    // const status = _.filter(ob, (a: any) => a.zibObjectDef === 'Burgelijkestaat');
+    //
+    // for(const concept of kind){
+    //   const dummy = null
+    // }
 
-    for(const concept of kind){
-      const dummy = null
-    }
-
-    const dummy = null
   };
 
   /**
