@@ -12,6 +12,8 @@ export class TerminologyProcessor extends WorkerHost {
   private readonly baseUrl: string;
   private readonly username: string;
   private readonly password: string;
+  private readonly loincUsername: string;
+  private readonly loincPassword: string;
   private accessToken: string;
 
   constructor(
@@ -22,6 +24,8 @@ export class TerminologyProcessor extends WorkerHost {
     this.baseUrl = this.config.get('TERMINOLOGY_BASE_URL');
     this.username = this.config.get('TERMINOLOGY_USERNAME');
     this.password = this.config.get('TERMINOLOGY_PASSWORD');
+    this.loincUsername = this.config.get('LOINC_USERNAME');
+    this.loincPassword = this.config.get('LOINC_PASSWORD');
   }
 
   private async getAccessToken(): Promise<string> {
@@ -57,27 +61,9 @@ export class TerminologyProcessor extends WorkerHost {
     const { system, code } = job.data;
     const cacheKey = `terminology:${system}|${code}`;
 
-    const url = `${this.baseUrl}/fhir/CodeSystem/$lookup?system=${encodeURIComponent(system)}&code=${encodeURIComponent(code)}&displayLanguage=nl`;
-
-    let token = await this.getAccessToken();
-    let response = await fetch(url, {
-      headers: {
-        Accept: 'application/fhir+json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    // Token expired — refresh and retry once
-    if (response.status === 401) {
-      this.accessToken = null;
-      token = await this.getAccessToken();
-      response = await fetch(url, {
-        headers: {
-          Accept: 'application/fhir+json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
+    const response = system === 'http://loinc.org'
+      ? await this.fetchLoinc(code)
+      : await this.fetchNictiz(system, code);
 
     if (!response.ok) {
       this.logger.warn(`Lookup failed for ${cacheKey}: ${response.status}`);
@@ -95,5 +81,43 @@ export class TerminologyProcessor extends WorkerHost {
     }
 
     return display;
+  }
+
+  private async fetchLoinc(code: string): Promise<Response> {
+    const url = `https://fhir.loinc.org/CodeSystem/$lookup?system=http://loinc.org&code=${encodeURIComponent(code)}&displayLanguage=nl`;
+    const credentials = Buffer.from(`${this.loincUsername}:${this.loincPassword}`).toString('base64');
+
+    return fetch(url, {
+      headers: {
+        Accept: 'application/fhir+json',
+        Authorization: `Basic ${credentials}`,
+      },
+    });
+  }
+
+  private async fetchNictiz(system: string, code: string): Promise<Response> {
+    const params = `system=${encodeURIComponent(system)}&code=${encodeURIComponent(code)}&displayLanguage=nl`;
+    const url = `${this.baseUrl}/fhir/CodeSystem/$lookup?${params}`;
+
+    let token = await this.getAccessToken();
+    let response = await fetch(url, {
+      headers: {
+        Accept: 'application/fhir+json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401) {
+      this.accessToken = null;
+      token = await this.getAccessToken();
+      response = await fetch(url, {
+        headers: {
+          Accept: 'application/fhir+json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+
+    return response;
   }
 }

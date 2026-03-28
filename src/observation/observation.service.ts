@@ -32,11 +32,11 @@ export class ObservationService implements FhirResourceService<any> {
     this.setSubject(data);
     this.setCategory(data);
     this.setValueQuantity(data);
-    this.setValueCodeableConcept(data);
-    this.setCode(data);
+    await this.setValueCodeableConcept(data);
+    await this.setCode(data);
     this.setEffectiveDateTime(data);
     this.setEffectivePeriod(data);
-    this.setBodySite(data);
+    await this.setBodySite(data);
     await this.setComponents(data);
     this.setComment(data);
 
@@ -104,12 +104,14 @@ export class ObservationService implements FhirResourceService<any> {
 
   async setValueCodeableConcept(data: RawEntity): Promise<void> {
     if (data.source === 'DrugsUse') {
+      const display = await this.terminology.lookupSnomedSct('228366006', 'bevinding betreffende drugsgebruik (bevinding)');
+
       this.observation.valueCodeableConcept = new CodeableConcept({
         coding: [
           new Coding({
             system: 'http://snomed.info/sct',
             code: '228366006',
-            display: 'bevinding betreffende drugsgebruik (bevinding)',
+            display,
           }),
         ],
       });
@@ -138,28 +140,37 @@ export class ObservationService implements FhirResourceService<any> {
   }
 
   /** Mapping of ZIB source types to their LOINC coding definitions. */
-  private static readonly codeMap: Record<string, { code: string; display: string }[]> = {
+  private static readonly codeMap: Record<string, { system: string; code: string; display: string }[]> = {
     BodyHeight: [
-      { code: '8302-2', display: 'Body height' },
-      { code: '8308-9', display: 'Body height --standing' },
+      { system: 'http://loinc.org', code: '8302-2', display: 'Body height' },
+      { system: 'http://loinc.org', code: '8308-9', display: 'Body height --standing' },
     ],
-    BodyTemperature: [{ code: '8310-5', display: 'Body temperature' }],
-    BodyWeight: [{ code: '29463-7', display: 'Body weight' }],
-    AlcoholUse: [{ code: '228273003', display: 'Bevinding betreffende alcoholgebruike' }],
-    DrugsUse: [{ code: '228366006', display: 'Bevinding betreffende drugsgebruik ' }],
-    FamilySituation: [{ code: '365470003', display: 'Bevinding betreffende gegevens over gezin en gezinssamenstelling' }],
+    BodyTemperature: [{ system: 'http://loin' +
+        'c.org', code: '8310-5', display: 'Body temperature' }],
+    BodyWeight: [{ system: 'http://loinc.org', code: '29463-7', display: 'Body weight' }],
+    AlcoholUse: [{ system: 'http://snomed.info/sct', code: '228273003', display: 'Bevinding betreffende alcoholgebruik' }],
+    DrugsUse: [{ system: 'http://snomed.info/sct', code: '228366006', display: 'Bevinding betreffende drugsgebruik' }],
+    FamilySituation: [
+      { system: 'http://snomed.info/sct', code: '365470003', display: 'Bevinding betreffende gegevens over gezin en gezinssamenstelling' },
+    ],
   };
 
   /**
    * Sets the observation code using LOINC codings from {@link codeMap}.
    * @param data - The raw entity containing ZIB source data.
    */
-  setCode(data: RawEntity) {
+  async setCode(data: RawEntity): Promise<void> {
     const codings = ObservationService.codeMap[data.source];
     if (!codings) return;
 
     this.observation.code = new CodeableConcept({
-      coding: codings.map((c) => new Coding({ system: 'http://loinc.org', code: c.code, display: c.display })),
+      coding: await Promise.all(
+        codings.map(async (c) => {
+          const display = await this.terminology.lookup(c.system, c.code, c.display);
+
+          return new Coding({ system: c.system, code: c.code, display });
+        }),
+      ),
     });
   }
 
@@ -236,7 +247,7 @@ export class ObservationService implements FhirResourceService<any> {
    * from the MeetLocatie (measurement location) zibObject.
    * @param data - The raw entity containing ZIB source data.
    */
-  setBodySite(data: RawEntity): void {
+  async setBodySite(data: RawEntity): Promise<void> {
     if (data.source === 'BloodPressure' && isVitalSign(data.source)) {
       const location = _.find(data.main.zibObject, (a: any) => {
         return a.MetingNaam === 'MeetLocatie';
@@ -244,13 +255,14 @@ export class ObservationService implements FhirResourceService<any> {
 
       if (location && location.UitslagWaarde) {
         const entity = location.UitslagWaarde;
+        const display = await this.terminology.lookupSnomedSct(`${entity.conceptCode}`, `${entity.conceptNaam}`);
 
         this.observation.bodySite = new CodeableConcept({
           coding: [
             new Coding({
               system: 'http://snomed.info/sct',
               code: `${entity.conceptCode}`,
-              display: `${entity.conceptNaam}`,
+              display,
             }),
           ],
         });
@@ -265,7 +277,7 @@ export class ObservationService implements FhirResourceService<any> {
   async setComponents(data: RawEntity): Promise<void> {
     switch (data.source) {
       case 'BloodPressure': {
-        this.addBloodPressureMeasurements(data);
+        await this.addBloodPressureMeasurements(data);
         break;
       }
 
@@ -291,10 +303,9 @@ export class ObservationService implements FhirResourceService<any> {
   }
 
   addFamilySituationMeasurements(data: RawEntity): void {
-
     const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
 
-    if(!ob) return;
+    if (!ob) return;
 
     // const dg = _.filter(ob, (a: any) => {
     //   return a.zibObjectDef === 'Kind' || a.zibObjectDef === 'Burgelijkestaat';
@@ -305,8 +316,7 @@ export class ObservationService implements FhirResourceService<any> {
     // for(const concept of kind){
     //   const dummy = null
     // }
-
-  };
+  }
 
   /**
    * Adds DrugsUse components (drug type, administration route, usage status)
@@ -450,17 +460,18 @@ export class ObservationService implements FhirResourceService<any> {
     GemiddeldeBloeddruk: { code: 'nog te doen', display: 'nog te doen' },
   };
 
-  addBloodPressureMeasurements(data: RawEntity): void {
+  async addBloodPressureMeasurements(data: RawEntity): Promise<void> {
     const objects = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
     const measurements = objects.filter((a: any) => a?.zibObjectDef in ObservationService.bloodPressureComponentMap);
 
     for (const measurement of measurements) {
-      const { code, display } = ObservationService.bloodPressureComponentMap[measurement.zibObjectDef];
+      const config = ObservationService.bloodPressureComponentMap[measurement.zibObjectDef];
+      const display = await this.terminology.lookupLoinc(config.code, config.display);
 
       this.observation.addComponent(
         new ObservationComponent({
           code: new CodeableConcept({
-            coding: [new Coding({ system: 'http://loinc.org', code, display })],
+            coding: [new Coding({ system: 'http://loinc.org', code: config.code, display })],
           }),
           valueQuantity: new Quantity({
             value: +measurement.UitslagWaarde,
