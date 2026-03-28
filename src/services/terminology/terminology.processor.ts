@@ -12,6 +12,7 @@ export class TerminologyProcessor extends WorkerHost {
   private readonly baseUrl: string;
   private readonly username: string;
   private readonly password: string;
+  private readonly loincBaseUrl: string;
   private readonly loincUsername: string;
   private readonly loincPassword: string;
   private accessToken: string;
@@ -21,11 +22,12 @@ export class TerminologyProcessor extends WorkerHost {
     @Inject(CACHE_MANAGER) private cache: Cache,
   ) {
     super();
-    this.baseUrl = this.config.get('TERMINOLOGY_BASE_URL');
-    this.username = this.config.get('TERMINOLOGY_USERNAME');
-    this.password = this.config.get('TERMINOLOGY_PASSWORD');
-    this.loincUsername = this.config.get('LOINC_USERNAME');
-    this.loincPassword = this.config.get('LOINC_PASSWORD');
+    this.baseUrl = this.config.get('terminology.baseUrl');
+    this.username = this.config.get('terminology.username');
+    this.password = this.config.get('terminology.password');
+    this.loincBaseUrl = this.config.get('loinc.baseUrl');
+    this.loincUsername = this.config.get('loinc.username');
+    this.loincPassword = this.config.get('loinc.password');
   }
 
   private async getAccessToken(): Promise<string> {
@@ -84,7 +86,7 @@ export class TerminologyProcessor extends WorkerHost {
   }
 
   private async fetchLoinc(code: string): Promise<Response> {
-    const url = `https://fhir.loinc.org/CodeSystem/$lookup?system=http://loinc.org&code=${encodeURIComponent(code)}&displayLanguage=nl`;
+    const url = `${this.loincBaseUrl}/CodeSystem/$lookup?system=http://loinc.org&code=${encodeURIComponent(code)}&displayLanguage=nl`;
     const credentials = Buffer.from(`${this.loincUsername}:${this.loincPassword}`).toString('base64');
 
     return fetch(url, {

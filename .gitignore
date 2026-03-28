@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# config
+/CONFIG/*.json
+!/CONFIG/example.json
+
 # Logs
 logs
 *.log
