@@ -6,6 +6,7 @@ import { appendSubject } from '../lib/append-subject';
 import * as _ from 'lodash';
 import { isVitalSign } from '../lib/is-vital-sign';
 import { TerminologyService } from '../services/terminology/terminology.service';
+import { Profiles } from '../lib/profiles';
 
 /**
  * Service responsible for mapping raw ZIB (Zorginformatiebouwstenen) entities
@@ -28,6 +29,7 @@ export class ObservationService implements FhirResourceService<any> {
       id: data.id,
     });
 
+    this.appendProfile(data);
     this.setStatus(data);
     this.setSubject(data);
     this.setCategory(data);
@@ -41,6 +43,18 @@ export class ObservationService implements FhirResourceService<any> {
     this.setComment(data);
 
     if (this.validate()) return this.observation;
+  }
+
+  /**
+   * Appends the FHIR profile URL to the observation meta based on the ZIB source type.
+   * @param data - The raw entity containing ZIB source data.
+   */
+  appendProfile(data: RawEntity) {
+    const profile = Profiles.get(data.source);
+
+    if (profile) {
+      this.observation.meta.addProfile(profile);
+    }
   }
 
   /**
@@ -102,6 +116,10 @@ export class ObservationService implements FhirResourceService<any> {
     BodyWeight: { zibObjectDef: 'GewichtWaarde', unit: 'kg', code: 'kg' },
   };
 
+  /**
+   * Sets a coded value for DrugsUse observations using SNOMED CT terminology lookup.
+   * @param data - The raw entity containing ZIB source data.
+   */
   async setValueCodeableConcept(data: RawEntity): Promise<void> {
     if (data.source === 'DrugsUse') {
       const display = await this.terminology.lookupSnomedSct('228366006', 'bevinding betreffende drugsgebruik (bevinding)');
@@ -145,8 +163,7 @@ export class ObservationService implements FhirResourceService<any> {
       { system: 'http://loinc.org', code: '8302-2', display: 'Body height' },
       { system: 'http://loinc.org', code: '8308-9', display: 'Body height --standing' },
     ],
-    BodyTemperature: [{ system: 'http://loin' +
-        'c.org', code: '8310-5', display: 'Body temperature' }],
+    BodyTemperature: [{ system: 'http://loin' + 'c.org', code: '8310-5', display: 'Body temperature' }],
     BodyWeight: [{ system: 'http://loinc.org', code: '29463-7', display: 'Body weight' }],
     AlcoholUse: [{ system: 'http://snomed.info/sct', code: '228273003', display: 'Bevinding betreffende alcoholgebruik' }],
     DrugsUse: [{ system: 'http://snomed.info/sct', code: '228366006', display: 'Bevinding betreffende drugsgebruik' }],
@@ -302,6 +319,10 @@ export class ObservationService implements FhirResourceService<any> {
     }
   }
 
+  /**
+   * Adds FamilySituation components (child, marital status) as Observation components.
+   * @param data - The raw entity containing ZIB source data.
+   */
   addFamilySituationMeasurements(data: RawEntity): void {
     const ob = Array.isArray(data.main.zibObject) ? data.main.zibObject : [data.main.zibObject];
 
