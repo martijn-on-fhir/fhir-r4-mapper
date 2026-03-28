@@ -48,3 +48,21 @@ Maps raw ZIB (Zorginformatiebouwstenen) entities to FHIR R4 resources.
 - **Registered** - Geregistreerd in resource-aliases, mapping nog niet geimplementeerd
 - **Basic** - Service scaffold aanwezig, minimale ZIB-specifieke mapping
 - **In progress** - Wordt aangewerkt
+
+## Docker
+
+Start de services met:
+
+```bash
+docker compose up
+```
+
+### RedisInsight
+
+RedisInsight is beschikbaar op `http://localhost:5540`. Gebruik bij het toevoegen van een connectie de servicenaam als host:
+
+```
+redis://default@redis:6379
+```
+
+> **Let op:** Gebruik `redis` als hostname, niet `localhost` of `127.0.0.1`. Binnen de Docker-omgeving verwijst `localhost` naar de container zelf, niet naar de Redis service.

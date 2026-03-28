@@ -1,0 +1,16 @@
+{
+  "redis": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "terminology": {
+    "baseUrl": "https://terminologieserver.nl",
+    "username": "",
+    "password": ""
+  },
+  "loinc": {
+    "baseUrl": "https://fhir.loinc.org",
+    "username": "",
+    "password": ""
+  }
+}
