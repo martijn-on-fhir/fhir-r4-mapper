@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FhirResourceService } from '../interfaces/fhir-resource-service.interface';
-import { Annotation, CodeableConcept, Coding, Observation, ObservationComponent, Period, Quantity } from 'fhir-models-r4';
+import { Annotation, CodeableConcept, Coding, Identifier, Observation, ObservationComponent, Period, Quantity } from 'fhir-models-r4';
 import { RawEntity } from '../interfaces/raw-entity.interface';
 import { appendSubject } from '../lib/append-subject';
 import * as _ from 'lodash';
@@ -30,6 +30,7 @@ export class ObservationService implements FhirResourceService<any> {
     });
 
     this.appendProfile(data);
+    this.appendIdentifier();
     this.setStatus(data);
     this.setSubject(data);
     this.setCategory(data);
@@ -55,6 +56,23 @@ export class ObservationService implements FhirResourceService<any> {
     if (profile) {
       this.observation.meta.addProfile(profile);
     }
+  }
+
+  /**
+   * Appends an identifier to the model if it does not already exist.
+   * @returns {void}
+   */
+  appendIdentifier() {
+    const entity = _.find(this.observation.identifier, { system: 'http://www.adapcare.nl/pluriform/ak' });
+
+    if (entity) return;
+
+    const identifier = new Identifier({
+      system: 'http://www.adapcare.nl/pluriform/ak',
+      value: this.observation.id,
+    });
+
+    this.observation.addIdentifier(identifier);
   }
 
   /**

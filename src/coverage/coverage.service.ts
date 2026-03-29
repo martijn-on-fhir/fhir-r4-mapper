@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FhirResourceService } from '../interfaces/fhir-resource-service.interface';
-import { Coverage } from 'fhir-models-r4';
+import { Coverage, Identifier } from 'fhir-models-r4';
 import { RawEntity } from '../interfaces/raw-entity.interface';
 import { Profiles } from '../lib/profiles';
+import _ from 'lodash';
 
 @Injectable()
 export class CoverageService implements FhirResourceService<any> {
@@ -14,8 +15,26 @@ export class CoverageService implements FhirResourceService<any> {
     });
 
     this.appendProfile(data);
+    this.appendIdentifier();
 
     if (this.validate()) return this.coverage;
+  }
+
+  /**
+   * Appends an identifier to the model if it does not already exist.
+   * @returns {void}
+   */
+  appendIdentifier() {
+    const entity = _.find(this.coverage.identifier, { system: 'http://www.adapcare.nl/pluriform/ak' });
+
+    if (entity) return;
+
+    const identifier = new Identifier({
+      system: 'http://www.adapcare.nl/pluriform/ak',
+      value: this.coverage.id,
+    });
+
+    this.coverage.addIdentifier(identifier);
   }
 
   /**

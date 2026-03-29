@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FhirResourceService } from '../interfaces/fhir-resource-service.interface';
-import { CodeableConcept, Coding, Encounter } from 'fhir-models-r4';
+import { CodeableConcept, Coding, Encounter, Identifier } from 'fhir-models-r4';
 import { RawEntity } from '../interfaces/raw-entity.interface';
 import { Profiles } from '../lib/profiles';
+import _ from 'lodash';
 
 @Injectable()
 export class EncounterService implements FhirResourceService<any> {
@@ -14,9 +15,27 @@ export class EncounterService implements FhirResourceService<any> {
     });
 
     this.appendProfile(data);
+    this.appendIdentifier();
     this.setClass(data);
 
     if (this.validate()) return this.encounter;
+  }
+
+  /**
+   * Appends an identifier to the model if it does not already exist.
+   * @returns {void}
+   */
+  appendIdentifier() {
+    const entity = _.find(this.encounter.identifier, { system: 'http://www.adapcare.nl/pluriform/ak' });
+
+    if (entity) return;
+
+    const identifier = new Identifier({
+      system: 'http://www.adapcare.nl/pluriform/ak',
+      value: this.encounter.id,
+    });
+
+    this.encounter.addIdentifier(identifier);
   }
 
   /**

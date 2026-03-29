@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FhirResourceService } from '../interfaces/fhir-resource-service.interface';
-import { Consent } from 'fhir-models-r4';
+import { Consent, Identifier } from 'fhir-models-r4';
 import { RawEntity } from '../interfaces/raw-entity.interface';
 import { Profiles } from '../lib/profiles';
+import _ from 'lodash';
 
 @Injectable()
 export class ConsentService implements FhirResourceService<any> {
@@ -16,6 +17,23 @@ export class ConsentService implements FhirResourceService<any> {
     this.appendProfile(data);
 
     if (this.validate()) return this.consent;
+  }
+
+  /**
+   * Appends an identifier to the model if it does not already exist.
+   * @returns {void}
+   */
+  appendIdentifier() {
+    const entity = _.find(this.consent.identifier, { system: 'http://www.adapcare.nl/pluriform/ak' });
+
+    if (entity) return;
+
+    const identifier = new Identifier({
+      system: 'http://www.adapcare.nl/pluriform/ak',
+      value: this.consent.id,
+    });
+
+    this.consent.addIdentifier(identifier);
   }
 
   /**
