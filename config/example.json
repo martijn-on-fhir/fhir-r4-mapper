@@ -12,5 +12,9 @@
     "baseUrl": "https://fhir.loinc.org",
     "username": "",
     "password": ""
+  },
+  "oauth": {
+    "issuer": "",
+    "audience": ""
   }
 }

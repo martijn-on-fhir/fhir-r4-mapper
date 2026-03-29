@@ -1,9 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { instanceToPlain } from 'class-transformer';
 import { RegisterService } from './services/register/register.service';
 import { RawEntity } from './interfaces/raw-entity.interface';
+import { OAuthGuard } from './guards/oauth.guard';
 
 @Controller()
+@UseGuards(OAuthGuard)
 export class AppController {
   constructor(private readonly registerService: RegisterService) {}
 
